@@ -1,6 +1,343 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+(v1-23-0)=
+## [1.23.0](https://github.com/sqlc-dev/sqlc/releases/tag/v1.23.0)
+Released 2023-10-24
+
+### Release notes
+
+#### Database-backed query analysis
+
+With a [database connection](config.md#database) configured, `sqlc generate`
+will gather metadata from that database to support its query analysis.
+Turning this on resolves a [large number of
+issues](https://github.com/sqlc-dev/sqlc/issues?q=is%3Aissue+label%3Aanalyzer)
+in the backlog related to type inference and more complex queries. The easiest
+way to try it out is with [managed databases](../howto/managed-databases.md).
+
+The database-backed analyzer currently supports PostgreSQL, with [MySQL](https://github.com/sqlc-dev/sqlc/issues/2902) and [SQLite](https://github.com/sqlc-dev/sqlc/issues/2903)
+support planned in the future.
+
+#### New `createdb` command
+
+When you have a cloud project configured, you can use the new `sqlc createdb`
+command to spin up a new ephemeral database with your schema and print its
+connection string to standard output. This is useful for integrating with other
+tools. Read more in the [managed
+databases](../howto/managed-databases.md#with-other-tools) documentation.
+
+#### Support for pgvector
+
+If you're using [pgvector](https://github.com/pgvector/pgvector), say goodbye to custom overrides! sqlc now generates code using [pgvector-go](https://github.com/pgvector/pgvector-go#pgx) as long as you're using `pgx`. The pgvector extension is also available in [managed databases](../howto/managed-databases.md).
+
+#### Go build tags
+
+With the new `emit_build_tags` configuration parameter you can set build tags
+for sqlc to add at the top of generated source files.
+
+### Changes
+
+#### Bug Fixes
+
+- (codegen) Correct column names in :copyfrom (#2838)
+- (compiler) Search SELECT and UPDATE the same way (#2841)
+- (dolphin) Support more UNIONs for MySQL (#2843)
+- (compiler) Account for parameters without parents (#2844)
+- (postgresql) Remove temporary pool config (#2851)
+- (golang) Escape reserved keywords (#2849)
+- (mysql) Handle simplified CASE statements (#2852)
+- (engine/dolphin) Support enum in ALTER definition (#2680)
+- (mysql) Add, drop, rename and change enum values (#2853)
+- (config) Validate `database` config in all cases (#2856)
+- (compiler) Use correct func signature for `CommentSyntax` on windows (#2867)
+- (codegen/go) Prevent filtering of embedded struct fields (#2868)
+- (compiler) Support functions with OUT params (#2865)
+- (compiler) Pull in array information from analyzer (#2864)
+- (analyzer) Error on unexpanded star expression (#2882)
+- (vet) Remove rollback statements from DDL (#2895)
+
+#### Documentation
+
+- Add stable anchors to changelog (#2784)
+- Fix typo in v1.22.0 changelog (#2796)
+- Add sqlc upload to CI / CD guide (#2797)
+- Fix broken link, add clarity to plugins doc (#2813)
+- Add clarity and reference to JSON tags (#2819)
+- Replace form with dashboard link (#2840)
+- (examples) Update examples to use pgx/v5 (#2863)
+- Use docker compose v2 and update MYSQL_DATABASE env var (#2870)
+- Update getting started guides, use pgx for Postgres guide (#2891)
+- Use managed databases in PostgreSQL getting started guide (#2892)
+- Update managed databases doc to discuss codegen (#2897)
+- Add managed dbs to CI/CD and vet guides (#2896)
+- Document database-backed query analyzer (#2904)
+
+#### Features
+
+- (codegen) Support setting Go build tags (#2012) (#2807)
+- (generate) Reorder codegen handlers to prefer plugins (#2814)
+- (devenv) Add vscode settings.json with auto newline (#2834)
+- (cmd) Support sqlc.yml configuration file (#2828)
+- (analyzer) Analyze queries using a running PostgreSQL database (#2805)
+- (sql/ast) Render AST to SQL (#2815)
+- (codegen) Include plugin information (#2846)
+- (postgresql) Add ALTER VIEW ... SET SCHEMA (#2855)
+- (compiler) Parse query parameter metadata from comments (#2850)
+- (postgresql) Support system columns on tables (#2871)
+- (compiler) Support LEFT JOIN on aliased table (#2873)
+- Improve messaging for common cloud config and rpc errors (#2885)
+- Abort compiler when rpc fails as unauthenticated (#2887)
+- (codegen) Add support for pgvector and pgvector-go (#2888)
+- (analyzer) Cache query analysis (#2889)
+- (createdb) Create ephemeral databases (#2894)
+- (debug) Add databases=managed debug option (#2898)
+- (config) Remove managed database validation (#2901)
+
+#### Miscellaneous Tasks
+
+- (endtoend) Fix test output for do tests (#2782)
+
+#### Refactor
+
+- (codegen) Remove golang and json settings from plugin proto (#2822)
+- (codegen) Removed deprecated code and improved speed (#2899)
+
+#### Testing
+
+- (endtoend) Split shema and queries (#2803)
+- Fix a few incorrect testcases (#2804)
+- (analyzer) Add more database analyzer test cases (#2854)
+- Add more analyzer test cases (#2866)
+- Add more test cases for new analyzer (#2879)
+- (endtoend) Enabled managed-db tests in CI (#2883)
+- Enabled pgvector tests for managed dbs (#2893)
+
+#### Build
+
+- (deps) Bump packaging from 23.1 to 23.2 in /docs (#2791)
+- (deps) Bump urllib3 from 2.0.5 to 2.0.6 in /docs (#2798)
+- (deps) Bump babel from 2.12.1 to 2.13.0 in /docs (#2799)
+- (deps) Bump golang.org/x/sync from 0.3.0 to 0.4.0 (#2810)
+- (deps) Bump golang from 1.21.1 to 1.21.2 (#2811)
+- (deps) Bump github.com/google/go-cmp from 0.5.9 to 0.6.0 (#2826)
+- (deps) Bump golang from 1.21.2 to 1.21.3 (#2824)
+- (deps) Bump google.golang.org/grpc from 1.58.2 to 1.58.3 (#2825)
+- (deps) Bump golang.org/x/net from 0.12.0 to 0.17.0 (#2836)
+- (deps) Bump urllib3 from 2.0.6 to 2.0.7 in /docs (#2872)
+- (deps) Bump google.golang.org/grpc from 1.58.3 to 1.59.0 (#2876)
+- (deps) Upgrade wasmtime-go from 13.0.0 to 14.0.0 (#2900)
+
+#### Ci
+
+- Bump go version in workflows (#2835)
+
+
+(v1-22-0)=
+## [1.22.0](https://github.com/sqlc-dev/sqlc/releases/tag/v1.22.0)
+Released 2023-09-26
+
+### Release notes
+
+#### Managed databases for `sqlc vet`
+
+If you're using [sqlc vet](../howto/vet.md) to write rules that require access to a running
+database, `sqlc` can now start and manage that database for you. PostgreSQL
+support is available today, with MySQL on the way.
+
+When you turn on managed databases, `sqlc` will use your schema to create a
+template database that it can copy to make future runs of `sqlc vet` very
+performant.
+
+This feature relies on configuration obtained via [sqlc
+Cloud](https://dashboard.sqlc.dev).
+
+Read more in the [managed databases](../howto/managed-databases.md) documentation.
+
+### Changes
+
+#### Bug Fixes
+
+- (codegen/golang) Refactor imports code to match templates (#2709)
+- (codegen/golang) Support name type (#2715)
+- (wasm) Move Runner struct to shared file (#2725)
+- (engine/sqlite) Fix grammer to avoid missing join_constraint (#2732)
+- (convert) Support YAML anchors in plugin options (#2733)
+- (mysql) Disallow time.Time in mysql :copyfrom queries, not all queries (#2768)
+- (engine/sqlite) Fix convert process for VALUES (#2737)
+
+#### Documentation
+
+- Clarify nullable override behavior (#2753)
+- Add managed databases to sidebar (#2764)
+- Pull renaming and type overrides into separate sections (#2774)
+- Update the docs banner for managed dbs (#2775)
+
+#### Features
+
+- (config) Enables the configuration of copyfrom.go similar to quierer and friends (#2727)
+- (vet) Run rules against a managed database (#2751)
+- (upload) Point upload command at new endpoint (#2772)
+- (compiler) Support DO statements (#2777)
+
+#### Miscellaneous Tasks
+
+- (endtoend) Skip tests missing secrets (#2763)
+- Skip certain tests on PRs (#2769)
+
+#### Testing
+
+- (endtoend) Verify all schemas in endtoend (#2744)
+- (examples) Use a hosted database for example testing (#2749)
+- (endtoend) Pull region from environment (#2750)
+
+#### Build
+
+- (deps) Bump golang from 1.21.0 to 1.21.1 (#2711)
+- (deps) Bump google.golang.org/grpc from 1.57.0 to 1.58.1 (#2743)
+- (deps) Bump wasmtime-go from v12 to v13 (#2756)
+- (windows) Downgrade to mingw 11.2.0 (#2757)
+- (deps) Bump urllib3 from 2.0.4 to 2.0.5 in /docs (#2747)
+- (deps) Bump google.golang.org/grpc from 1.58.1 to 1.58.2 (#2758)
+- (deps) Bump github.com/google/cel-go from 0.18.0 to 0.18.1 (#2778)
+
+#### Ci
+
+- Bump go version to latest in ci workflows (#2722)
+
+
+(v1-21-0)=
+## [1.21.0](https://github.com/sqlc-dev/sqlc/releases/tag/v1.21.0)
+Released 2023-09-06
+
+### Release notes
+
+This is primarily a bugfix release, along with some documentation and testing improvements.
+
+#### MySQL engine improvements
+
+`sqlc` previously didn't know how to parse a `CALL` statement when using the MySQL engine,
+which meant it was impossible to use sqlc with stored procedures in MySQL databases.
+
+Additionally, `sqlc` now supports `IS [NOT] NULL` in queries. And `LIMIT` and `OFFSET` clauses
+now work with `UNION`.
+
+#### SQLite engine improvements
+
+GitHub user [@orisano](https://github.com/orisano) continues to bring bugfixes and
+improvements to `sqlc`'s SQLite engine. See the "Changes" section below for the
+full list.
+
+#### Plugin access to environment variables
+
+If you're authoring a [sqlc plugin](../guides/plugins.html), you can now configure
+sqlc to pass your plugin the values of specific environment variables.
+
+For example, if your plugin
+needs the `PATH` environment variable, add `PATH` to the `env` list in the
+`plugins` collection.
+
+```yaml
+version: '2'
+sql:
+- schema: schema.sql
+  queries: query.sql
+  engine: postgresql
+  codegen:
+  - out: gen
+    plugin: test
+plugins:
+- name: test
+  env:
+  - PATH
+  wasm:
+    url: https://github.com/sqlc-dev/sqlc-gen-test/releases/download/v0.1.0/sqlc-gen-test.wasm
+    sha256: 138220eae508d4b65a5a8cea555edd155eb2290daf576b7a8b96949acfeb3790
+```
+
+A variable named `SQLC_VERSION` is always included in the plugin's
+environment, set to the version of the `sqlc` executable invoking it.
+
+### Changes
+
+#### Bug Fixes
+
+- Myriad string formatting changes (#2558)
+- (engine/sqlite) Support quoted identifier (#2556)
+- (engine/sqlite) Fix compile error (#2564)
+- (engine/sqlite) Fixed detection of column alias without AS (#2560)
+- (ci) Bump go version to 1.20.7 (#2568)
+- Remove references to deprecated `--experimental` flag (#2567)
+- (postgres) Fixed a problem with array dimensions disappearing when using "ALTER TABLE ADD COLUMN" (#2572)
+- Remove GitHub sponsor integration (#2574)
+- (docs) Improve discussion of prepared statements support (#2604)
+- (docs) Remove multidimensional array qualification in datatypes.md (#2619)
+- (config) Go struct tag parsing (#2606)
+- (compiler) Fix to not scan children under ast.RangeSubselect when retrieving table listing (#2573)
+- (engine/sqlite) Support NOT IN (#2587)
+- (codegen/golang) Fixed detection of the used package (#2597)
+- (engine/dolphin) Fixed problem that LIMIT OFFSET cannot be used with `UNION ALL` (#2613)
+- (compiler) Support identifiers with schema (#2579)
+- (compiler) Fix column expansion to work with quoted non-keyword identifiers (#2576)
+- (codegen/go) Compare define type in codegen (#2263) (#2578)
+- (engine/sqlite) Fix ast when using compound operator (#2673)
+- (engine/sqlite) Fix to handle join clauses correctly (#2674)
+- (codegen) Use correct Go types for bit strings and cid/oid/tid/xid with pgx/v4 (#2668)
+- (endtoend) Ensure all SQL works against PostgreSQL (#2684)
+
+#### Documentation
+
+- Update Docker installation instructions (#2552)
+- Missing emit_pointers_for_null_types configuration option in version 2 (#2682) (#2683)
+- Fix typo (#2697)
+- Document sqlc.* macros (#2698)
+- (mysql) Document parseTimet=true requirement (#2699)
+- Add atlas to the list of supported migration frameworks (#2700)
+- Minor updates to insert howto (#2701)
+
+#### Features
+
+- (endtoend/testdata) Added two sqlite `CAST` tests and rearranged postgres tests for same (#2551)
+- (docs) Add a reference to type overriding in datatypes.md (#2557)
+- (engine/sqlite) Support COLLATE for sqlite WHERE clause (#2554)
+- (mysql) Add parser support for IS [NOT] NULL (#2651)
+- (engine/dolphin) Support CALL statement (#2614)
+- (codegen) Allow plugins to access environment variables (#2669)
+- (config) Add JSON schema files for configs (#2703)
+
+#### Miscellaneous Tasks
+
+- Ignore Vim swap files (#2616)
+- Fix typo (#2696)
+
+#### Refactor
+
+- (astutils) Remove redundant nil check in `Walk` (#2660)
+
+#### Build
+
+- (deps) Bump wasmtime from v8.0.0 to v11.0.0 (#2553)
+- (deps) Bump golang from 1.20.6 to 1.20.7 (#2563)
+- (deps) Bump chardet from 5.1.0 to 5.2.0 in /docs (#2562)
+- (deps) Bump github.com/pganalyze/pg_query_go/v4 (#2583)
+- (deps) Bump golang from 1.20.7 to 1.21.0 (#2596)
+- (deps) Bump github.com/jackc/pgx/v5 from 5.4.2 to 5.4.3 (#2582)
+- (deps) Bump pygments from 2.15.1 to 2.16.1 in /docs (#2584)
+- (deps) Bump sphinxcontrib-applehelp from 1.0.4 to 1.0.7 in /docs (#2620)
+- (deps) Bump sphinxcontrib-qthelp from 1.0.3 to 1.0.6 in /docs (#2622)
+- (deps) Bump github.com/google/cel-go from 0.17.1 to 0.17.6 (#2650)
+- (deps) Bump sphinxcontrib-serializinghtml in /docs (#2641)
+- Upgrade from Go 1.20 to Go 1.21 (#2665)
+- (deps) Bump sphinxcontrib-devhelp from 1.0.2 to 1.0.5 in /docs (#2621)
+- (deps) Bump github.com/bytecodealliance/wasmtime-go from v11.0.0 to v12.0.0 (#2666)
+- (deps) Bump sphinx-rtd-theme from 1.2.2 to 1.3.0 in /docs (#2670)
+- (deps) Bump sphinxcontrib-htmlhelp from 2.0.1 to 2.0.4 in /docs (#2671)
+- (deps) Bump github.com/google/cel-go from 0.17.6 to 0.18.0 (#2691)
+- (deps) Bump actions/checkout from 3 to 4 (#2694)
+- (deps) Bump pytz from 2023.3 to 2023.3.post1 in /docs (#2695)
+- (devenv) Bump go from 1.20.7 to 1.21.0 (#2702)
+
+(v1-20-0)=
 ## [1.20.0](https://github.com/sqlc-dev/sqlc/releases/tag/v1.20.0)
 Released 2023-07-31
 
@@ -45,7 +382,7 @@ rules:
     !(postgresql.explain.plan.plans.all(p, has(p.index_name) || p.plans.all(p, has(p.index_name))))
 ```
 
-The expression environment has two variables containing `EXPLAIN ...` output, `postgresql.explain` and `mysql.explain`. `sqlc` only populates the variable associated with your configured database engine, and only when you have a [database connection configured](../reference/config.html#database).
+The expression environment has two variables containing `EXPLAIN ...` output, `postgresql.explain` and `mysql.explain`. `sqlc` only populates the variable associated with your configured database engine, and only when you have a [database connection configured](../reference/config.md#database).
 
 For the `postgresql` engine, `sqlc` runs
 

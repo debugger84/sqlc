@@ -7,7 +7,6 @@ package wasm
 import (
 	"context"
 	"crypto/sha256"
-	_ "embed"
 	"errors"
 	"fmt"
 	"io"
@@ -18,15 +17,16 @@ import (
 	"runtime/trace"
 	"strings"
 
-	wasmtime "github.com/bytecodealliance/wasmtime-go/v11"
+	wasmtime "github.com/bytecodealliance/wasmtime-go/v14"
 	"golang.org/x/sync/singleflight"
 
+	"github.com/sqlc-dev/sqlc/internal/cache"
 	"github.com/sqlc-dev/sqlc/internal/info"
 	"github.com/sqlc-dev/sqlc/internal/plugin"
 )
 
 // This version must be updated whenever the wasmtime-go dependency is updated
-const wasmtimeVersion = `v11.0.0`
+const wasmtimeVersion = `v14.0.0`
 
 func cacheDir() (string, error) {
 	cache := os.Getenv("SQLCCACHE")
@@ -42,11 +42,6 @@ func cacheDir() (string, error) {
 		cacheHome = filepath.Join(home, ".cache")
 	}
 	return filepath.Join(cacheHome, "sqlc"), nil
-}
-
-type Runner struct {
-	URL    string
-	SHA256 string
 }
 
 var flight singleflight.Group
@@ -82,16 +77,12 @@ func (r *Runner) loadSerializedModule(ctx context.Context, engine *wasmtime.Engi
 	if err != nil {
 		return nil, err
 	}
-	cacheRoot, err := cacheDir()
+	cacheDir, err := cache.PluginsDir()
 	if err != nil {
 		return nil, err
 	}
-	cache := filepath.Join(cacheRoot, "plugins")
-	if err := os.MkdirAll(cache, 0755); err != nil && !os.IsExist(err) {
-		return nil, fmt.Errorf("failed to create cache directory: %w", err)
-	}
 
-	pluginDir := filepath.Join(cache, expected)
+	pluginDir := filepath.Join(cacheDir, expected)
 	modName := fmt.Sprintf("plugin_%s_%s_%s.module", runtime.GOOS, runtime.GOARCH, wasmtimeVersion)
 	modPath := filepath.Join(pluginDir, modName)
 	_, staterr := os.Stat(modPath)
@@ -103,7 +94,7 @@ func (r *Runner) loadSerializedModule(ctx context.Context, engine *wasmtime.Engi
 		return data, nil
 	}
 
-	wmod, err := r.loadWASM(ctx, cache, expected)
+	wmod, err := r.loadWASM(ctx, cacheDir, expected)
 	if err != nil {
 		return nil, err
 	}
@@ -254,6 +245,14 @@ func (r *Runner) Generate(ctx context.Context, req *plugin.CodeGenRequest) (*plu
 	wasiConfig.SetStdinFile(stdinPath)
 	wasiConfig.SetStdoutFile(stdoutPath)
 	wasiConfig.SetStderrFile(stderrPath)
+
+	keys := []string{"SQLC_VERSION"}
+	vals := []string{req.SqlcVersion}
+	for _, key := range r.Env {
+		keys = append(keys, key)
+		vals = append(vals, os.Getenv(key))
+	}
+	wasiConfig.SetEnv(keys, vals)
 
 	store := wasmtime.NewStore(engine)
 	store.SetWasi(wasiConfig)

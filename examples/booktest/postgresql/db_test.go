@@ -8,14 +8,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sqlc-dev/sqlc/internal/sqltest"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+
+	"github.com/sqlc-dev/sqlc/internal/sqltest/hosted"
 )
 
 func TestBooks(t *testing.T) {
-	db, cleanup := sqltest.PostgreSQL(t, []string{"schema.sql"})
-	defer cleanup()
-
 	ctx := context.Background()
+	uri := hosted.PostgreSQL(t, []string{"schema.sql"})
+	db, err := pgx.Connect(ctx, uri)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close(ctx)
+
 	dq := New(db)
 
 	// create an author
@@ -25,7 +32,7 @@ func TestBooks(t *testing.T) {
 	}
 
 	// create transaction
-	tx, err := db.Begin()
+	tx, err := db.Begin(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +40,7 @@ func TestBooks(t *testing.T) {
 	tq := dq.WithTx(tx)
 
 	// save first book
-	now := time.Now()
+	now := pgtype.Timestamptz{Time: time.Now(), Valid: true}
 	_, err = tq.CreateBook(ctx, CreateBookParams{
 		AuthorID:  a.AuthorID,
 		Isbn:      "1",
@@ -100,7 +107,7 @@ func TestBooks(t *testing.T) {
 	}
 
 	// tx commit
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +132,7 @@ func TestBooks(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, book := range books0 {
-		t.Logf("Book %d (%s): %s available: %s\n", book.BookID, book.BookType, book.Title, book.Available.Format(time.RFC822Z))
+		t.Logf("Book %d (%s): %s available: %s\n", book.BookID, book.BookType, book.Title, book.Available.Time.Format(time.RFC822Z))
 		author, err := dq.GetAuthor(ctx, book.AuthorID)
 		if err != nil {
 			t.Fatal(err)

@@ -3,6 +3,7 @@ package golang
 import (
 	"strings"
 
+	"github.com/sqlc-dev/sqlc/internal/codegen/golang/opts"
 	"github.com/sqlc-dev/sqlc/internal/codegen/sdk"
 	"github.com/sqlc-dev/sqlc/internal/plugin"
 )
@@ -31,7 +32,7 @@ func addExtraGoStructTags(tags map[string]string, req *plugin.CodeGenRequest, co
 	}
 }
 
-func goType(req *plugin.CodeGenRequest, col *plugin.Column) string {
+func goType(req *plugin.CodeGenRequest, options *opts.Options, col *plugin.Column) string {
 	// Check if the column's type has been overridden
 	for _, oride := range req.Settings.Overrides {
 		if oride.GoType.TypeName == "" {
@@ -49,7 +50,7 @@ func goType(req *plugin.CodeGenRequest, col *plugin.Column) string {
 			return oride.GoType.TypeName
 		}
 	}
-	typ := goInnerType(req, col)
+	typ := goInnerType(req, options, col)
 	if col.IsSqlcSlice {
 		return "[]" + typ
 	}
@@ -59,7 +60,7 @@ func goType(req *plugin.CodeGenRequest, col *plugin.Column) string {
 	return typ
 }
 
-func goInnerType(req *plugin.CodeGenRequest, col *plugin.Column) string {
+func goInnerType(req *plugin.CodeGenRequest, options *opts.Options, col *plugin.Column) string {
 	columnType := sdk.DataType(col.Type)
 	notNull := col.NotNull || col.IsArray
 
@@ -78,7 +79,7 @@ func goInnerType(req *plugin.CodeGenRequest, col *plugin.Column) string {
 	case "mysql":
 		return mysqlType(req, col)
 	case "postgresql":
-		return postgresType(req, col)
+		return postgresType(req, options, col)
 	case "sqlite":
 		return sqliteType(req, col)
 	default:

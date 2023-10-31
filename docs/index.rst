@@ -38,6 +38,15 @@ code ever again.
 
 .. toctree::
    :maxdepth: 2
+   :caption: Commands
+   :hidden:
+
+   howto/generate.md
+   howto/vet.md
+   howto/upload.md
+
+.. toctree::
+   :maxdepth: 2
    :caption: How-to Guides
    :hidden:
 
@@ -53,30 +62,38 @@ code ever again.
 
    howto/ddl.md
    howto/structs.md
+   howto/embedding.md
+   howto/overrides.md
+   howto/rename.md
 
-   howto/vet.md
-   howto/ci-cd.md
-   howto/upload.md
+.. toctree::
+   :maxdepth: 3
+   :caption: sqlc Cloud
+   :hidden:
+
+   howto/managed-databases.md
 
 .. toctree::
    :maxdepth: 3
    :caption: Reference
    :hidden:
 
+   reference/changelog.md
    reference/cli.md
    reference/config.md
    reference/datatypes.md
-   reference/query-annotations.md
-   reference/language-support.rst
    reference/environment-variables.md
-   reference/changelog.md
+   reference/language-support.rst
+   reference/macros.md
+   reference/query-annotations.md
 
 .. toctree::
    :maxdepth: 2
    :caption: Conceptual Guides
    :hidden:
 
+   howto/ci-cd.md
    guides/using-go-and-pgx.rst
-   guides/development.md
    guides/plugins.md
+   guides/development.md
    guides/privacy.md
